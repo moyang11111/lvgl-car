@@ -10,7 +10,7 @@
 /* lv_linux_fbdev_suspend/resume stubs for lvgl v9.x compat */
 extern void lv_linux_fbdev_suspend(void *disp);
 extern void lv_linux_fbdev_resume(void *disp);
-#include "src/ui/ui.h"
+#include "src/UI/ui.h"
 #include "video_play.h"
 
 #define VIDEO_FIFO   "/fifo_video"
