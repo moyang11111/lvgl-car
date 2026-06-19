@@ -114,3 +114,8 @@ static void run_loop_fbdev(void)
 }
 
 #endif /*LV_USE_LINUX_FBDEV*/
+
+/* Stub for lvgl v9.x compat: video_play.c calls these to release fb for mplayer.
+   In v9.x the framebuffer lifecycle is managed differently; these are no-ops here. */
+void lv_linux_fbdev_suspend(lv_display_t *disp) { (void)disp; }
+void lv_linux_fbdev_resume(lv_display_t *disp)  { (void)disp; }
