@@ -13,10 +13,10 @@
 
 #define VIDEO_FIFO   "/fifo_video"
 #define VIDEO_FIFO_SIZE 64
-#define SEEK_STEP    10           /* 快进/快退步进秒数 */
-#define SLIDER_TIMER_MS 500       /* 进度条定时器更新周期(ms) */
+#define SEEK_STEP    10           /* 蹇繘/蹇€€姝ヨ繘绉掓暟 */
+#define SLIDER_TIMER_MS 500       /* 杩涘害鏉″畾鏃跺櫒鏇存柊鍛ㄦ湡(ms) */
 
-/* ============== 全局状态 ============== */
+/* ============== 鍏ㄥ眬鐘舵€?============== */
 
 static int video_fifo_fd = -1;
 static pthread_t video_thread;
@@ -24,18 +24,18 @@ static volatile int video_running = 0;
 static volatile int video_paused = 0;
 static lv_timer_t *slider_timer = NULL;
 
-/* 用户传入的控件 */
+/* 鐢ㄦ埛浼犲叆鐨勬帶浠?*/
 static lv_obj_t *playback_panel = NULL;
 static lv_obj_t *progress_slider = NULL;
 
-/* 播放列表 */
+/* 鎾斁鍒楄〃 */
 static const char **playlist = NULL;
 static int playlist_size = 0;
 static int current_idx = 0;
 
-/* ============== 内部工具函数 ============== */
+/* ============== 鍐呴儴宸ュ叿鍑芥暟 ============== */
 
-/** 获取 Panel 在屏幕上的绝对坐标和尺寸 */
+/** 鑾峰彇 Panel 鍦ㄥ睆骞曚笂鐨勭粷瀵瑰潗鏍囧拰灏哄 */
 static void get_panel_rect(lv_obj_t *obj, int *x, int *y, int *w, int *h)
 {
     lv_area_t area;
@@ -44,10 +44,10 @@ static void get_panel_rect(lv_obj_t *obj, int *x, int *y, int *w, int *h)
     *y = area.y1;
     *w = lv_obj_get_width(obj);
     *h = lv_obj_get_height(obj);
-    printf("视频: Panel 绝对位置 = (%d,%d), 尺寸 = %dx%d\n", *x, *y, *w, *h);
+    printf("瑙嗛: Panel 缁濆浣嶇疆 = (%d,%d), 灏哄 = %dx%d\n", *x, *y, *w, *h);
 }
 
-/** 获取播放列表中当前视频文件的路径 */
+/** 鑾峰彇鎾斁鍒楄〃涓綋鍓嶈棰戞枃浠剁殑璺緞 */
 static const char *current_video_path(void)
 {
     if (!playlist || current_idx < 0 || current_idx >= playlist_size)
@@ -55,28 +55,28 @@ static const char *current_video_path(void)
     return playlist[current_idx];
 }
 
-/** 发送命令给 mplayer (通过 FIFO) */
+/** 鍙戦€佸懡浠ょ粰 mplayer (閫氳繃 FIFO) */
 static void send_cmd(const char *cmd)
 {
     if (video_fifo_fd >= 0) {
         write(video_fifo_fd, cmd, strlen(cmd));
-        printf("视频: 发送命令 -> %s", cmd);
+        printf("瑙嗛: 鍙戦€佸懡浠?-> %s", cmd);
     }
 }
 
-/** 获取mplayer的播放进度百分比 (通过解析mplayer输出) */
+/** 鑾峰彇mplayer鐨勬挱鏀捐繘搴︾櫨鍒嗘瘮 (閫氳繃瑙ｆ瀽mplayer杈撳嚭) */
 static int get_media_percent(void)
 {
-    /* mplayer -slave 模式下, 我们可以发送 "get_percent_pos\n" 获取进度
-     * 输出格式: "ANS_PERCENT_POSITION=%d"
-     * 但由于 FIFO 是单向的, 实际的进度获取需要另做处理。
-     * 这里通过定时器模拟: 每500ms递增1%, 满100%自动下一首
-     * 更精确的做法: 使用管道读取mplayer标准输出, 解析 ANS 应答
+    /* mplayer -slave 妯″紡涓? 鎴戜滑鍙互鍙戦€?"get_percent_pos\n" 鑾峰彇杩涘害
+     * 杈撳嚭鏍煎紡: "ANS_PERCENT_POSITION=%d"
+     * 浣嗙敱浜?FIFO 鏄崟鍚戠殑, 瀹為檯鐨勮繘搴﹁幏鍙栭渶瑕佸彟鍋氬鐞嗐€?
+     * 杩欓噷閫氳繃瀹氭椂鍣ㄦā鎷? 姣?00ms閫掑1%, 婊?00%鑷姩涓嬩竴棣?
+     * 鏇寸簿纭殑鍋氭硶: 浣跨敤绠￠亾璇诲彇mplayer鏍囧噯杈撳嚭, 瑙ｆ瀽 ANS 搴旂瓟
      */
-    return -1;  /* 返回-1表示由定时器模拟 */
+    return -1;  /* 杩斿洖-1琛ㄧず鐢卞畾鏃跺櫒妯℃嫙 */
 }
 
-/* ============== mplayer 播放线程 ============== */
+/* ============== mplayer 鎾斁绾跨▼ ============== */
 
 static void *mplayer_thread(void *arg)
 {
@@ -84,26 +84,26 @@ static void *mplayer_thread(void *arg)
     int px = 0, py = 0, pw = 800, ph = 480;
     const char *video;
 
-    /* 获取当前播放视频 */
+    /* 鑾峰彇褰撳墠鎾斁瑙嗛 */
     video = current_video_path();
     if (!video) {
-        printf("视频: 播放列表为空或索引无效\n");
+        printf("瑙嗛: 鎾斁鍒楄〃涓虹┖鎴栫储寮曟棤鏁圽n");
         return NULL;
     }
 
-    /* 获取 Panel 位置 */
+    /* 鑾峰彇 Panel 浣嶇疆 */
     if (playback_panel)
         get_panel_rect(playback_panel, &px, &py, &pw, &ph);
 
-    /* 不超出屏幕 800x480 */
+    /* 涓嶈秴鍑哄睆骞?800x480 */
     if (pw > 800) pw = 800;
     if (ph > 480) ph = 480;
 
-    /* 杀掉残留的 mplayer 进程 */
+    /* 鏉€鎺夋畫鐣欑殑 mplayer 杩涚▼ */
     system("killall -9 mplayer 2>/dev/null");
     usleep(200000);
 
-    /* 创建 FIFO 管道 */
+    /* 鍒涘缓 FIFO 绠￠亾 */
     unlink(VIDEO_FIFO);
     if (mkfifo(VIDEO_FIFO, 0777) < 0) {
         perror("mkfifo");
@@ -111,18 +111,18 @@ static void *mplayer_thread(void *arg)
     }
 
     /*
-     * 为保证进度条不被视频覆盖, 将视频高度缩减 10px
+     * 涓轰繚璇佽繘搴︽潯涓嶈瑙嗛瑕嗙洊, 灏嗚棰戦珮搴︾缉鍑?10px
      */
     int safe_h = ph - 10;
     if (safe_h < 100) safe_h = ph;
 
     /*
-     * 启动 mplayer:
-     *   -slave              : 接受标准输入命令
-     *   -quiet              : 减少控制台输出
-     *   -input file=        : 使用 FIFO 接收命令
-     *   -vo fbdev2          : 输出到 framebuffer 设备
-     *   -vf scale=W:H,format=bgra : 缩放视频, 留出进度条空间
+     * 鍚姩 mplayer:
+     *   -slave              : 鎺ュ彈鏍囧噯杈撳叆鍛戒护
+     *   -quiet              : 鍑忓皯鎺у埗鍙拌緭鍑?
+     *   -input file=        : 浣跨敤 FIFO 鎺ユ敹鍛戒护
+     *   -vo fbdev2          : 杈撳嚭鍒?framebuffer 璁惧
+     *   -vf scale=W:H,format=bgra : 缂╂斁瑙嗛, 鐣欏嚭杩涘害鏉＄┖闂?
      */
     char cmd[512];
     snprintf(cmd, sizeof(cmd),
@@ -133,10 +133,10 @@ static void *mplayer_thread(void *arg)
              VIDEO_FIFO,
              pw, safe_h,
              video);
-    printf("视频: 启动 mplayer -> %s\n", cmd);
+    printf("瑙嗛: 鍚姩 mplayer -> %s\n", cmd);
     system(cmd);
 
-    /* 打开 FIFO (写端) */
+    /* 鎵撳紑 FIFO (鍐欑) */
     video_fifo_fd = open(VIDEO_FIFO, O_WRONLY);
     if (video_fifo_fd < 0) {
         perror("open fifo");
@@ -145,25 +145,25 @@ static void *mplayer_thread(void *arg)
 
     video_running = 1;
     video_paused = 0;
-    printf("视频: 开始播放 [%d/%d] %s\n", current_idx + 1, playlist_size, video);
+    printf("瑙嗛: 寮€濮嬫挱鏀?[%d/%d] %s\n", current_idx + 1, playlist_size, video);
 
-    /* 保持线程运行, 接收命令 */
+    /* 淇濇寔绾跨▼杩愯, 鎺ユ敹鍛戒护 */
     while (video_running) {
         sleep(1);
     }
 
-    /* 清理 */
-    printf("视频: 停止播放线程...\n");
+    /* 娓呯悊 */
+    printf("瑙嗛: 鍋滄鎾斁绾跨▼...\n");
     close(video_fifo_fd);
     video_fifo_fd = -1;
     system("killall -9 mplayer 2>/dev/null");
     unlink(VIDEO_FIFO);
-    printf("视频: 播放线程已退出\n");
+    printf("瑙嗛: 鎾斁绾跨▼宸查€€鍑篭n");
 
     return NULL;
 }
 
-/* ============== 进度条定时器回调 ============== */
+/* ============== 杩涘害鏉″畾鏃跺櫒鍥炶皟 ============== */
 
 static void slider_timer_cb(lv_timer_t *timer)
 {
@@ -171,20 +171,20 @@ static void slider_timer_cb(lv_timer_t *timer)
     if (!video_running || !progress_slider)
         return;
 
-    /* 每500ms递增进度条, 满100%自动下一首 */
+    /* 姣?00ms閫掑杩涘害鏉? 婊?00%鑷姩涓嬩竴棣?*/
     int val = lv_slider_get_value(progress_slider);
     val += 1;
     if (val >= 100) {
         lv_slider_set_value(progress_slider, 100, LV_ANIM_OFF);
-        /* 自动下一首 */
-        printf("视频: 播放结束, 自动下一首\n");
+        /* 鑷姩涓嬩竴棣?*/
+        printf("瑙嗛: 鎾斁缁撴潫, 鑷姩涓嬩竴棣朶n");
         video_play_next();
     } else {
         lv_slider_set_value(progress_slider, val, LV_ANIM_OFF);
     }
 }
 
-/* ============== 按钮事件回调 ============== */
+/* ============== 鎸夐挳浜嬩欢鍥炶皟 ============== */
 
 static void on_play_btn_click(lv_event_t *e)
 {
@@ -216,28 +216,28 @@ static void on_slider_value_change(lv_event_t *e)
 
     lv_obj_t *slider = lv_event_get_target_obj(e);
     int val = lv_slider_get_value(slider);
-    printf("视频: 拖动进度条到 %d%%\n", val);
+    printf("瑙嗛: 鎷栧姩杩涘害鏉″埌 %d%%\n", val);
 
-    /* 通过百分比计算跳转位置: seek 命令接受百分比或秒数
-     * seek val  # val 是百分比 (0-100)
+    /* 閫氳繃鐧惧垎姣旇绠楄烦杞綅缃? seek 鍛戒护鎺ュ彈鐧惧垎姣旀垨绉掓暟
+     * seek val  # val 鏄櫨鍒嗘瘮 (0-100)
      */
     char cmd[VIDEO_FIFO_SIZE];
     snprintf(cmd, sizeof(cmd), "seek %d 1\n", val);
     send_cmd(cmd);
 }
 
-/* ============== 外部接口 ============== */
+/* ============== 澶栭儴鎺ュ彛 ============== */
 
 void video_play_init(lv_obj_t *panel, lv_obj_t *slider,
                      lv_obj_t *btn_prev, lv_obj_t *btn_next,
                      lv_obj_t *btn_play,
                      const char *video_list[])
 {
-    /* 保存控件引用 */
+    /* 淇濆瓨鎺т欢寮曠敤 */
     playback_panel = panel;
     progress_slider = slider;
 
-    /* 解析播放列表 */
+    /* 瑙ｆ瀽鎾斁鍒楄〃 */
     playlist = video_list;
     playlist_size = 0;
     if (video_list) {
@@ -246,68 +246,68 @@ void video_play_init(lv_obj_t *panel, lv_obj_t *slider,
     }
     current_idx = 0;
 
-    printf("视频: 播放列表共 %d 首\n", playlist_size);
+    printf("瑙嗛: 鎾斁鍒楄〃鍏?%d 棣朶n", playlist_size);
 
-    /* 绑定按钮事件 (如果传入的控件不为 NULL) */
+    /* 缁戝畾鎸夐挳浜嬩欢 (濡傛灉浼犲叆鐨勬帶浠朵笉涓?NULL) */
     if (btn_play) {
         lv_obj_add_event_cb(btn_play, on_play_btn_click, LV_EVENT_CLICKED, NULL);
-        printf("视频: 已绑定播放/暂停按钮事件\n");
+        printf("瑙嗛: 宸茬粦瀹氭挱鏀?鏆傚仠鎸夐挳浜嬩欢\n");
     }
 
     if (btn_prev) {
         lv_obj_add_event_cb(btn_prev, on_prev_btn_click, LV_EVENT_CLICKED, NULL);
-        printf("视频: 已绑定上一首按钮事件\n");
+        printf("瑙嗛: 宸茬粦瀹氫笂涓€棣栨寜閽簨浠禱n");
     }
 
     if (btn_next) {
         lv_obj_add_event_cb(btn_next, on_next_btn_click, LV_EVENT_CLICKED, NULL);
-        printf("视频: 已绑定下一首按钮事件\n");
+        printf("瑙嗛: 宸茬粦瀹氫笅涓€棣栨寜閽簨浠禱n");
     }
 
-    /* 绑定进度条拖动事件 */
+    /* 缁戝畾杩涘害鏉℃嫋鍔ㄤ簨浠?*/
     if (progress_slider) {
         lv_obj_add_event_cb(progress_slider, on_slider_value_change, LV_EVENT_VALUE_CHANGED, NULL);
         lv_slider_set_range(progress_slider, 0, 100);
         lv_slider_set_value(progress_slider, 0, LV_ANIM_OFF);
-        printf("视频: 已绑定进度条事件\n");
+        printf("瑙嗛: 宸茬粦瀹氳繘搴︽潯浜嬩欢\n");
     }
 
-    /* 创建定时器: 每隔500ms更新进度条 */
+    /* 鍒涘缓瀹氭椂鍣? 姣忛殧500ms鏇存柊杩涘害鏉?*/
     slider_timer = lv_timer_create(slider_timer_cb, SLIDER_TIMER_MS, NULL);
 
-    printf("视频: 播放器初始化完成\n");
+    printf("瑙嗛: 鎾斁鍣ㄥ垵濮嬪寲瀹屾垚\n");
 }
 
 void video_play_start(void)
 {
     if (video_running && !video_paused) {
-        printf("视频: 已经在播放中\n");
+        printf("瑙嗛: 宸茬粡鍦ㄦ挱鏀句腑\n");
         return;
     }
 
     if (video_running && video_paused) {
-        /* 从暂停状态恢复 */
+        /* 浠庢殏鍋滅姸鎬佹仮澶?*/
         send_cmd("pause\n");
         video_paused = 0;
-        printf("视频: 继续播放\n");
+        printf("瑙嗛: 缁х画鎾斁\n");
         return;
     }
 
-    /* 暂停LVGL对fb0的占用 */
+    /* 鏆傚仠LVGL瀵筬b0鐨勫崰鐢?*/
     lv_linux_fbdev_suspend(lv_display_get_default());
 
-    /* 创建并启动播放线程 */
+    /* 鍒涘缓骞跺惎鍔ㄦ挱鏀剧嚎绋?*/
     if (pthread_create(&video_thread, NULL, mplayer_thread, NULL) != 0) {
         perror("pthread_create");
         return;
     }
     pthread_detach(video_thread);
 
-    /* 重置进度条 */
+    /* 閲嶇疆杩涘害鏉?*/
     if (progress_slider)
         lv_slider_set_value(progress_slider, 0, LV_ANIM_OFF);
 
-    printf("视频: 启动播放\n");
+    printf("瑙嗛: 鍚姩鎾斁\n");
 }
 
 void video_play_pause(void)
@@ -316,7 +316,7 @@ void video_play_pause(void)
 
     send_cmd("pause\n");
     video_paused = 1;
-    printf("视频: 暂停\n");
+    printf("瑙嗛: 鏆傚仠\n");
 }
 
 void video_play_toggle(void)
@@ -327,7 +327,7 @@ void video_play_toggle(void)
     }
 
     if (video_paused) {
-        video_play_start();  /* 继续播放 */
+        video_play_start();  /* 缁х画鎾斁 */
     } else {
         video_play_pause();
     }
@@ -337,7 +337,7 @@ void video_play_stop(void)
 {
     if (!video_running) return;
 
-    printf("视频: 停止播放\n");
+    printf("瑙嗛: 鍋滄鎾斁\n");
     video_running = 0;
 
     send_cmd("quit\n");
@@ -353,10 +353,10 @@ void video_play_stop(void)
     if (progress_slider)
         lv_slider_set_value(progress_slider, 0, LV_ANIM_OFF);
 
-    /* 恢复LVGL对fb0的占用 */
+    /* 鎭㈠LVGL瀵筬b0鐨勫崰鐢?*/
     lv_linux_fbdev_resume(lv_display_get_default());
 
-    printf("视频: 已停止\n");
+    printf("瑙嗛: 宸插仠姝n");
 }
 
 void video_play_prev(void)
@@ -364,9 +364,9 @@ void video_play_prev(void)
     if (playlist_size <= 0) return;
 
     current_idx = (current_idx - 1 + playlist_size) % playlist_size;
-    printf("视频: 上一首 [%d/%d]\n", current_idx + 1, playlist_size);
+    printf("瑙嗛: 涓婁竴棣?[%d/%d]\n", current_idx + 1, playlist_size);
 
-    /* 重新启动播放 */
+    /* 閲嶆柊鍚姩鎾斁 */
     video_play_stop();
     usleep(50000);
     video_play_start();
@@ -377,9 +377,9 @@ void video_play_next(void)
     if (playlist_size <= 0) return;
 
     current_idx = (current_idx + 1) % playlist_size;
-    printf("视频: 下一首 [%d/%d]\n", current_idx + 1, playlist_size);
+    printf("瑙嗛: 涓嬩竴棣?[%d/%d]\n", current_idx + 1, playlist_size);
 
-    /* 重新启动播放 */
+    /* 閲嶆柊鍚姩鎾斁 */
     video_play_stop();
     usleep(50000);
     video_play_start();
@@ -390,7 +390,7 @@ void video_play_seek_forward(int seconds)
     char cmd[VIDEO_FIFO_SIZE];
     snprintf(cmd, sizeof(cmd), "seek %d 0\n", seconds);
     send_cmd(cmd);
-    printf("视频: 快进 %d 秒\n", seconds);
+    printf("瑙嗛: 蹇繘 %d 绉抃n", seconds);
 }
 
 void video_play_seek_backward(int seconds)
@@ -398,7 +398,7 @@ void video_play_seek_backward(int seconds)
     char cmd[VIDEO_FIFO_SIZE];
     snprintf(cmd, sizeof(cmd), "seek -%d 0\n", seconds);
     send_cmd(cmd);
-    printf("视频: 快退 %d 秒\n", seconds);
+    printf("瑙嗛: 蹇€€ %d 绉抃n", seconds);
 }
 
 void video_play_seek_to(int percent)
@@ -406,7 +406,7 @@ void video_play_seek_to(int percent)
     char cmd[VIDEO_FIFO_SIZE];
     snprintf(cmd, sizeof(cmd), "seek %d 1\n", percent);
     send_cmd(cmd);
-    printf("视频: 跳转到 %d%%\n", percent);
+    printf("瑙嗛: 璺宠浆鍒?%d%%\n", percent);
 
     if (progress_slider)
         lv_slider_set_value(progress_slider, percent, LV_ANIM_OFF);
@@ -437,5 +437,5 @@ void video_play_deinit(void)
     playlist_size = 0;
     current_idx = 0;
 
-    printf("视频: 播放器模块已卸载\n");
+    printf("瑙嗛: 鎾斁鍣ㄦā鍧楀凡鍗歌浇\n");
 }
