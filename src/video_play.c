@@ -7,7 +7,9 @@
 #include <pthread.h>
 
 #include "lvgl/lvgl.h"
-#include "lvgl/src/drivers/display/fb/lv_linux_fbdev.h"
+/* lv_linux_fbdev_suspend/resume stubs for lvgl v9.x compat */
+extern void lv_linux_fbdev_suspend(void *disp);
+extern void lv_linux_fbdev_resume(void *disp);
 #include "src/ui/ui.h"
 #include "video_play.h"
 
