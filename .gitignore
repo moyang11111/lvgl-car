@@ -1,1 +1,26 @@
-# Build output build/ *.o *.a *.so *.bin *.elf  # IDE .vscode/ .idea/ *.swp *.swo *~  # OS .DS_Store Thumbs.db  # CMake generated CMakeCache.txt CMakeFiles/ cmake_install.cmake Makefile !Makefile  # Docker docker/  # Examples (upstream, not your code) example/
+# Build output
+build/
+*.o
+*.a
+*.so
+*.bin
+*.elf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Examples (upstream, not your code)
+example/
